@@ -1,6 +1,15 @@
+const fs = require("fs");
 const http = require("http");
+const PORT = process.env.PORT || 3000;
 const WebSocketServer = require("websocket").server;
-const httpServer = http.createServer((req, res) => {}).listen(5000);
+const httpServer = http
+    .createServer((req, res) => {
+        fs.readFile("./index.html", "utf-8", (err, data) => {
+            res.writeHead(200, { "Content-Type": "text/html" });
+            res.end(data);
+        });
+    })
+    .listen(PORT);
 let WebSocket = new WebSocketServer({
     httpServer,
 });
