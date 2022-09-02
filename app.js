@@ -7,7 +7,7 @@ ws.onmessage = (message) => {
     let res = JSON.parse(message.data);
     if (res.title === "createClient") {
         client = res.data;
-        body.innerHTML = `<h1>Welcome يا عثل</h1>
+        body.innerHTML = `<h1>Welcome</h1>
         <label for="room-text">Enter Room Id :</label>
         <input id="room-text" type="text" />
         <button id="join-btn">Join Room</button>
@@ -54,6 +54,7 @@ body.addEventListener("click", (e) => {
         );
     } else if (clickedElement.id === "send") {
         let message = document.querySelector("#message-text").value;
+        document.querySelector("#message-text").value = "";
         ws.send(
             JSON.stringify({
                 title: "sendMessage",
@@ -64,3 +65,4 @@ body.addEventListener("click", (e) => {
         );
     }
 });
+setInterval(() => (window.location = "/"), 30 * 1000);

@@ -1,17 +1,14 @@
-const fs = require("fs");
-const http = require("http");
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 const WebSocketServer = require("websocket").server;
-const httpServer = http
-    .createServer((req, res) => {
-        fs.readFile("./index.html", "utf-8", (err, data) => {
-            res.writeHead(200, { "Content-Type": "text/html" });
-            res.end(data);
-        });
-    })
-    .listen(PORT);
+let exec = require("child_process").exec;
+const express = require("express");
+const app = express();
+const server = app.listen(PORT);
+app.get("/", (req, res) => {
+    res.sendFile("/index.html", { root: __dirname });
+});
 let WebSocket = new WebSocketServer({
-    httpServer,
+    httpServer: server,
 });
 let clients = new Map();
 let rooms = new Map();
@@ -22,7 +19,6 @@ const createId = () => {
     }
     return _p8() + _p8(true) + _p8(true) + _p8();
 };
-
 WebSocket.on("request", (request) => {
     let connection = request.accept(null, request.origin);
     let client = { connection };
@@ -70,6 +66,12 @@ WebSocket.on("request", (request) => {
                     })
                 );
             }
+        } else if (res.title === "restart") {
+            clients = new Map();
+            rooms = new Map();
+            connection = null;
+            client = null;
+            console.log(clients, rooms);
         }
     });
 });
