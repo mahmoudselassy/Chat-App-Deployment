@@ -1,13 +1,14 @@
 const body = document.querySelector("body");
 const nameText = document.querySelector("#name-text");
-let ws = new WebSocket("ws://localhost:5000");
+let HOST = location.origin.replace(/^http/, "ws");
+let ws = new WebSocket(HOST);
 let client = null;
 let currentRoomId = null;
 ws.onmessage = (message) => {
     let res = JSON.parse(message.data);
     if (res.title === "createClient") {
         client = res.data;
-        body.innerHTML = `<h1>Welcome</h1>
+        body.innerHTML = `<h1>Welcome </h1>
         <label for="room-text">Enter Room Id :</label>
         <input id="room-text" type="text" />
         <button id="join-btn">Join Room</button>
@@ -65,4 +66,12 @@ body.addEventListener("click", (e) => {
         );
     }
 });
-setInterval(() => (window.location = "/"), 30 * 1000);
+setInterval(() => {
+    window.location = "/";
+    ws = new WebSocket(HOST);
+    ws.send(
+        JSON.stringify({
+            title: "restart",
+        })
+    );
+}, 60 * 60 * 1000);

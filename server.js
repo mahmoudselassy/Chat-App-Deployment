@@ -6,6 +6,7 @@ const server = app.listen(PORT);
 app.get("/", (req, res) => {
     res.sendFile("/index.html", { root: __dirname });
 });
+app.use(express.static(__dirname));
 let WebSocket = new WebSocketServer({
     httpServer: server,
 });
