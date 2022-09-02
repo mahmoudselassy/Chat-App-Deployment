@@ -1,6 +1,5 @@
 const PORT = process.env.PORT || 5000;
 const WebSocketServer = require("websocket").server;
-let exec = require("child_process").exec;
 const express = require("express");
 const app = express();
 const server = app.listen(PORT);

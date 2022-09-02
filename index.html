@@ -14,7 +14,8 @@
         <script>
             const body = document.querySelector("body");
             const nameText = document.querySelector("#name-text");
-            let ws = new WebSocket("ws://localhost:5000");
+            let HOST = location.origin.replace(/^http/, "ws");
+            let ws = new WebSocket(HOST);
             let client = null;
             let currentRoomId = null;
             ws.onmessage = (message) => {
