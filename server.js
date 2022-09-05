@@ -57,6 +57,7 @@ WebSocket.on("request", (request) => {
                         userName: user.name,
                         roomId,
                         roomName,
+                        membersId: members,
                         membersNames,
                     },
                 })
@@ -67,7 +68,10 @@ WebSocket.on("request", (request) => {
                     users.get(userId).connection.send(
                         JSON.stringify({
                             title: "memberAdded",
-                            data: { memberName: membersNames.at(-1) },
+                            data: {
+                                memberName: membersNames.at(-1),
+                                memberId: members.at(-1),
+                            },
                         })
                     );
             }
@@ -85,14 +89,43 @@ WebSocket.on("request", (request) => {
                     })
                 );
             }
+        } else if (res.title === "leaveRoom") {
+            let members = rooms.get(res.data.currentRoomId).members;
+            let roomName = rooms.get(res.data.currentRoomId).name;
+            let newMembers = members.filter(function (e) {
+                return e !== res.data.userId;
+            });
+            rooms.set(res.data.currentRoomId, {
+                name: roomName,
+                members: newMembers,
+            });
+            if (newMembers.length === 0) rooms.delete(res.data.currentRoomId);
+            connection.send(
+                JSON.stringify({
+                    title: "leaveRoom",
+                    data: { leavedUserId: res.data.userId },
+                })
+            );
+            for (let memberId of members) {
+                users.get(memberId).connection.send(
+                    JSON.stringify({
+                        title: "memberLeaved",
+                        data: {
+                            leavedUserId: res.data.userId,
+                        },
+                    })
+                );
+            }
         }
     });
     setInterval(() => {
-        connection.send(
-            JSON.stringify({
-                title: "restart",
-            })
-        );
+        for (let user of users.values()) {
+            user.connection.send(
+                JSON.stringify({
+                    title: "restart",
+                })
+            );
+        }
         users = new Map();
         rooms = new Map();
     }, 60 * 60 * 1000);

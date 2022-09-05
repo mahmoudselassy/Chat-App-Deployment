@@ -24,7 +24,7 @@ ws.onmessage = (message) => {
             <div class="chat-container">
             <header class="chat-header">
                 <h1>Chatter</h1>
-                <a href="index.html" class="btn">Leave Room</a>
+                <a href="javascript:void(0)" id="leave-room" class="btn">Leave Room</a>
             </header>
             <main class="chat-main">
                 <div class="chat-sidebar">
@@ -52,13 +52,15 @@ ws.onmessage = (message) => {
             </div>
         </div>
 `;
-        for (let memberName of res.data.membersNames) {
+        for (let i = 0; i < res.data.membersNames.length; i++) {
             const el = document.createElement("li");
-            el.innerHTML = memberName;
+            el.setAttribute("id", res.data.membersId[i]);
+            el.innerHTML = res.data.membersNames[i];
             document.querySelector("#users").append(el);
         }
     } else if (res.title === "memberAdded") {
         const el = document.createElement("li");
+        el.setAttribute("id", res.data.memberId);
         el.innerHTML = res.data.memberName;
         document.querySelector("#users").append(el);
     } else if (res.title === "sendMessage") {
@@ -79,6 +81,11 @@ ws.onmessage = (message) => {
                     </div>`;
     } else if (res.title === "restart") {
         window.location.reload();
+    } else if (res.title === "leaveRoom") {
+        document.getElementById(res.data.leavedUserId).remove();
+        window.location.reload();
+    } else if (res.title === "memberLeaved") {
+        document.getElementById(res.data.leavedUserId).remove();
     }
 };
 body.addEventListener("click", (e) => {
@@ -111,6 +118,13 @@ body.addEventListener("click", (e) => {
                     roomId: currentRoomId,
                     message,
                 },
+            })
+        );
+    } else if (clickedElement.id === "leave-room") {
+        ws.send(
+            JSON.stringify({
+                title: "leaveRoom",
+                data: { userId: user.id, currentRoomId },
             })
         );
     }
