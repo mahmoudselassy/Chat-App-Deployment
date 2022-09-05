@@ -95,5 +95,5 @@ WebSocket.on("request", (request) => {
         );
         users = new Map();
         rooms = new Map();
-    }, 60 * 10 * 1000);
+    }, 60 * 60 * 1000);
 });
