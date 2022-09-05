@@ -4,16 +4,19 @@ const roomText = document.querySelector("#room-text");
 const roomName = document.querySelector("#room-name");
 let HOST = location.origin.replace(/^http/, "ws");
 let ws = new WebSocket(HOST);
-let client = null;
+let user = null;
 let currentRoomId = null;
 ws.onmessage = (message) => {
     let res = JSON.parse(message.data);
     if (res.title === "createRoom") {
         roomText.value = res.data.roomId;
     } else if (res.title === "joinRoom") {
-        client = {
-            clientId: res.data.clientId,
-            clientName: res.data.clientName,
+        history.pushState(null, null, window.location.href);
+        history.back();
+        window.onpopstate = () => history.forward();
+        user = {
+            id: res.data.userId,
+            name: res.data.userName,
         };
         currentRoomId = res.data.roomId;
 
@@ -56,42 +59,44 @@ ws.onmessage = (message) => {
         }
     } else if (res.title === "memberAdded") {
         const el = document.createElement("li");
-        el.innerHTML = res.memberName;
+        el.innerHTML = res.data.memberName;
         document.querySelector("#users").append(el);
     } else if (res.title === "sendMessage") {
         const messages = document.querySelector(".chat-messages");
         messages.innerHTML += `<div class="message">
                         <p class="meta">${
-                            client.clientId === res.clientId
+                            user.id === res.data.senderId
                                 ? "me"
-                                : res.senderName
+                                : res.data.senderName
                         } <span>${new Date(Date.now()).toLocaleString("en-US", {
             hour: "numeric",
             minute: "numeric",
             hour12: true,
         })}</span></p>
                         <p class="text">
-                            ${res.clientMessage}
+                            ${res.data.message}
                         </p>
                     </div>`;
+    } else if (res.title === "restart") {
+        window.location.reload();
     }
 };
 body.addEventListener("click", (e) => {
     let clickedElement = e.target;
     if (clickedElement.id === "create-btn") {
-        if (!roomName.value) return alert("enter room name for creating!");
+        if (!roomName.value) return alert("Enter room name for creating!");
         ws.send(
             JSON.stringify({
                 title: "createRoom",
-                roomName: roomName.value,
+                data: { roomName: roomName.value },
             })
         );
     } else if (clickedElement.id === "join-btn") {
+        let roomId = document.querySelector("#room-text").value;
         ws.send(
             JSON.stringify({
                 title: "joinRoom",
-                roomId: document.querySelector("#room-text").value,
-                name: nameText.value,
+                data: { roomId, userName: nameText.value },
             })
         );
     } else if (clickedElement.id === "send") {
@@ -100,20 +105,13 @@ body.addEventListener("click", (e) => {
         ws.send(
             JSON.stringify({
                 title: "sendMessage",
-                clientName: client.clientName,
-                senderId: client.clientId,
-                roomId: currentRoomId,
-                message,
+                data: {
+                    senderId: user.id,
+                    senderName: user.name,
+                    roomId: currentRoomId,
+                    message,
+                },
             })
         );
     }
 });
-setInterval(() => {
-    window.location = "/";
-    ws = new WebSocket(HOST);
-    ws.send(
-        JSON.stringify({
-            title: "restart",
-        })
-    );
-}, 60 * 60 * 1000);
