@@ -110,7 +110,9 @@ body.addEventListener("click", (e) => {
         );
     } else if (clickedElement.id === "send") {
         let message = document.querySelector("#message-text").value;
-        if (!message) return;
+        console.log(message.split(" ").length);
+        if (!message || message.split(" ").length - 1 === message.length)
+            return;
         document.querySelector("#message-text").value = "";
         ws.send(
             JSON.stringify({
