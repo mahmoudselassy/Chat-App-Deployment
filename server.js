@@ -39,6 +39,14 @@ WebSocket.on("request", (request) => {
             );
         } else if (res.title === "joinRoom") {
             const roomId = res.data.roomId;
+            if (!rooms.has(roomId)) {
+                connection.send(
+                    JSON.stringify({
+                        title: "roomNotFound",
+                    })
+                );
+                return;
+            }
             user.name = res.data.userName;
             users.set(userId, user);
             let members = rooms.get(roomId).members;
@@ -95,11 +103,20 @@ WebSocket.on("request", (request) => {
             let newMembers = members.filter(function (e) {
                 return e !== res.data.userId;
             });
+            if (newMembers.length === 0) {
+                rooms.delete(res.data.currentRoomId);
+                connection.send(
+                    JSON.stringify({
+                        title: "leaveRoom",
+                        data: { leavedUserId: res.data.userId },
+                    })
+                );
+                connection.close();
+            }
             rooms.set(res.data.currentRoomId, {
                 name: roomName,
                 members: newMembers,
             });
-            if (newMembers.length === 0) rooms.delete(res.data.currentRoomId);
             connection.send(
                 JSON.stringify({
                     title: "leaveRoom",

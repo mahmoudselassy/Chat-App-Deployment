@@ -11,9 +11,6 @@ ws.onmessage = (message) => {
     if (res.title === "createRoom") {
         roomText.value = res.data.roomId;
     } else if (res.title === "joinRoom") {
-        history.pushState(null, null, window.location.href);
-        history.back();
-        window.onpopstate = () => history.forward();
         user = {
             id: res.data.userId,
             name: res.data.userName,
@@ -86,6 +83,9 @@ ws.onmessage = (message) => {
         window.location.reload();
     } else if (res.title === "memberLeaved") {
         document.getElementById(res.data.leavedUserId).remove();
+    } else if (res.title === "roomNotFound") {
+        roomText.value = "";
+        alert("Enter valid room Id!");
     }
 };
 body.addEventListener("click", (e) => {
@@ -100,6 +100,8 @@ body.addEventListener("click", (e) => {
         );
     } else if (clickedElement.id === "join-btn") {
         let roomId = document.querySelector("#room-text").value;
+        if (!roomId) return alert("Enter valid room Id!");
+        if (!nameText.value) return alert("Enter your name!");
         ws.send(
             JSON.stringify({
                 title: "joinRoom",
@@ -108,6 +110,7 @@ body.addEventListener("click", (e) => {
         );
     } else if (clickedElement.id === "send") {
         let message = document.querySelector("#message-text").value;
+        if (!message) return;
         document.querySelector("#message-text").value = "";
         ws.send(
             JSON.stringify({
@@ -128,4 +131,12 @@ body.addEventListener("click", (e) => {
             })
         );
     }
+});
+window.addEventListener("beforeunload", () => {
+    ws.send(
+        JSON.stringify({
+            title: "leaveRoom",
+            data: { userId: user.id, currentRoomId },
+        })
+    );
 });
