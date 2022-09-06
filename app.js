@@ -35,14 +35,15 @@ ws.onmessage = (message) => {
                 </div>
             </main>
             <div class="chat-form-container">
-                <form id="chat-form">
+                <form id="chat-form" onSubmit="return false;">
                     <input
                         id="message-text"
                         type="text"
                         placeholder="Enter Message"
-                        required
+                        onkeydown = "if (event.keyCode == 13)
+                        document.getElementById('send').click()"
                     />
-                    <button type="button" id="send" class="btn">
+                    <button type="button" id="send" class="btn" >
                         <i class="fas fa-paper-plane"></i> Send
                     </button>
                 </form>
